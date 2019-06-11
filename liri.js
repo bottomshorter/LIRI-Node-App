@@ -1,6 +1,7 @@
-require("dotenv").config();
-var keys = require("./keys.js");
+require('dotenv').config();
+var keys = require('./keys.js');
 var Spotify = require('node-spotify-api');
+var axios = require('axios');
 
 //Moment JS
 var moment = require('moment');
@@ -8,13 +9,15 @@ var moment = require('moment');
 //Spotify Keys 
 var spotify = new Spotify(keys.spotify);
 
+var fs = require('fs');
+
 
 moment().format();
 
 var command = process.argv[2];
 var input = process.argv[3];
 
-//Function: spotify-this-song; Searches Spotify API for whatever is entered into proces.arg[3]
+//Function: spotify-this-song; Searches Spotify API for whatever is entered into process.arg[3]
 function spotifySong(spotifyQuery) {
 
     //If there is nothing entered into process.argv[3] or input, then search Spotify for "I Want It That Way"
@@ -52,13 +55,38 @@ function spotifySong(spotifyQuery) {
     });
 }
 
+function whenConcert(){
+    axios.get("https://rest.bandsintown.com/artists/" + input + "/events?app_id=codingbootcamp")
+    .then(function(response) {    
+        for (var i = 0; i < response.data.length; i++) {
+
+            var datetime = response.data[i].datetime; //Saves datetime response into a variable
+            var dateArr = datetime.split('T'); //Attempting to split the date and time in the response
+
+            var concertResults = 
+                
+                    "\nVenue Name: " + response.data[i].venue.name + 
+                    "\nVenue Location: " + response.data[i].venue.city +
+                    "\nDate of the Event: " + moment(dateArr.datetime).format("MM/DD/YYYY") +
+                    "\n--------------------------------------------------------------------";
+            console.log(concertResults);
+        }
+    })
+    .catch(function (error) {
+        console.log(error);
+    });
+
+
+
+}
+
 //
 var ask = function (commands, returnData) {
     switch (commands) {
         //Case to match
         case "concert-this":
             //Run function according to case
-            ConcertsInTown(returnData);
+            whenConcert(returnData);
             break;
 
         case 'spotify-this-song':
@@ -74,7 +102,12 @@ var ask = function (commands, returnData) {
             break;
 
         default:
-            console.log("Invalid command. Please try again");
+            console.log("Invalid command. Please try again and use the following commands:"
+            + "\nconcert-this" //done
+            + "\nspotify-this-song" //done
+            + "\nmovie-this"
+            + "\ndo-what-it-says"
+            + "\n---------------------------------");
     }
 };
 
